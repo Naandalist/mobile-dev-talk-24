@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!--
+    A phone with MD over ID on its screen, in one ink.
+    The letters are Geist SemiBold outlines (SIL Open Font License), copied in
+    as shapes so the icon needs no font wherever it is rasterised. Dark ink by
+    default; light ink when the browser is in dark mode.
+    scripts/build-og-logo.mjs swaps the ink colour for the dark share cards.
+  -->
+  <style>
+    .ink { fill: none; stroke: #18181b; }
+    .fill { fill: #18181b; }
+    @media (prefers-color-scheme: dark) {
+      .ink { stroke: #fafafa; }
+      .fill { fill: #fafafa; }
+    }
+  </style>
+
+  <!-- Phone body and speaker slot -->
+  <rect class="ink" x="28" y="8" width="44" height="84" rx="10" stroke-width="4" />
+  <path class="ink" d="M45 17H55" stroke-width="3" stroke-linecap="round" />
+
+  <!-- MD -->
+  <path class="fill" transform="translate(34.07 49.75) scale(0.019 -0.019)" d="M80 0L80 710L255 710L451 160L647 710L822 710L822 0L692 0L692 490L513 1L389 1L210 490L210 0L80 0Z" />
+  <path class="fill" transform="translate(51.7 49.75) scale(0.019 -0.019)" d="M80 0L80 710L316 710Q486 710 577.5 617.5Q669 525 669 354Q669 184 579 92Q489 0 322 0L80 0ZM210 113L316 113Q535 113 535 354Q535 597 316 597L210 597L210 113Z" />
+
+  <!-- ID -->
+  <path class="fill" transform="translate(39.88 69.75) scale(0.019 -0.019)" d="M80 0L80 710L210 710L210 0L80 0Z" />
+  <path class="fill" transform="translate(45.89 69.75) scale(0.019 -0.019)" d="M80 0L80 710L316 710Q486 710 577.5 617.5Q669 525 669 354Q669 184 579 92Q489 0 322 0L80 0ZM210 113L316 113Q535 113 535 354Q535 597 316 597L210 597L210 113Z" />
+</svg>
