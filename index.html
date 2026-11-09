@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="id">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+		/>
+
+		<title>Scrape Data from Mobile Apps | Mobile Dev Talk #24</title>
+
+		<link rel="stylesheet" href="dist/reset.css" />
+		<link rel="stylesheet" href="dist/reveal.css" />
+		<link rel="stylesheet" href="dist/theme/black.css" />
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="dist/plugin/highlight/monokai.css" />
+
+		<style>
+			/* ===== Sol-inspired theme: black & white, Montserrat + Open Sans, hairlines ===== */
+			:root {
+				--bg: #ffffff;
+				--panel: #f6f6f6;
+				--line: #cfcfcf;
+				--hair: rgba(0, 0, 0, 0.14);
+				--text: #000000;
+				--ink2: #b5b5b5;
+				--ink3: #d6d6d6;
+				--ink4: #e6e6e6;
+				--muted: #6e6e6e;
+				--accent: #000000;
+				--warn: #d97a00;
+				--danger: #e5383b;
+				--info: #2f6f9f;
+				--head: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+				--body: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+				--mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+				--r-background-color: #fff;
+				--r-main-font: var(--body);
+				--r-main-color: #000;
+				--r-main-font-size: 30px;
+				--r-heading-font: var(--head);
+				--r-heading-color: #000;
+				--r-heading-font-weight: 700;
+				--r-heading-text-transform: none;
+				--r-heading-letter-spacing: -0.02em;
+				--r-heading-line-height: 1.08;
+				--r-link-color: #000;
+				--r-selection-background-color: #000;
+				--r-selection-color: #fff;
+			}
+			body,
+			.reveal-viewport { background: #fff; }
+			.reveal { font-weight: 400; }
+			.reveal h1 { font-size: 2.6em; font-weight: 700; letter-spacing: -0.03em; }
+			.reveal h2 { font-size: 1.7em; margin-bottom: 0.7em; }
+			.reveal h3 { font-family: var(--head); font-size: 0.95em; font-weight: 700; color: #000; letter-spacing: -0.01em; }
+			.reveal p, .reveal li { line-height: 1.5; }
+			.reveal b, .reveal strong { font-weight: 700; color: #000; }
+			.reveal .slides section { text-align: left; }
+			.reveal .slides section.center { text-align: center; }
+
+			/* lists: small square bullets */
+			.reveal ul { list-style: none; margin-left: 0; }
+			.reveal ul li { position: relative; padding-left: 1.1em; margin: 0.3em 0; }
+			.reveal ul li::before {
+				content: ''; position: absolute; left: 0.1em; top: 0.68em;
+				width: 6px; height: 6px; background: currentColor; opacity: 0.6;
+			}
+			.reveal ol { margin-left: 1.3em; }
+			.reveal ol li { margin: 0.3em 0; }
+			.reveal ol li::marker { font-family: var(--head); font-weight: 700; color: var(--muted); }
+
+			/* labels */
+			.reveal .kicker {
+				font-family: var(--body); font-weight: 600; font-size: 0.42em;
+				color: #000; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 1.2em;
+			}
+			.reveal .kicker.warn { color: var(--warn); }
+			.reveal .muted { color: var(--muted); }
+			.reveal .small { font-size: 0.7em; }
+			.reveal .xs { font-size: 0.5em; letter-spacing: 0.02em; }
+			.reveal .accent { color: #000; font-weight: 700; }
+			.reveal .warn { color: var(--warn); }
+			.reveal .danger { color: var(--danger); }
+			.reveal .info { color: var(--info); }
+
+			/* code */
+			.reveal code { font-family: var(--mono); }
+			.reveal p code, .reveal li code, .reveal td code {
+				border-bottom: 1px solid var(--hair); padding: 0 0.15em; font-size: 0.82em; color: #000;
+			}
+			.reveal pre {
+				width: 100%; font-size: 0.5em; box-shadow: none;
+				border: 0; border-left: 2px solid #000; border-radius: 0; margin: 0.6em 0;
+			}
+			.reveal pre code { max-height: 560px; padding: 14px 24px; background: #f6f6f6; }
+			.hljs { color: #2a2a2a; background: #f6f6f6; }
+			.hljs-keyword, .hljs-built_in, .hljs-title, .hljs-title.function_, .hljs-attr { color: #000; font-weight: 700; }
+			.hljs-string, .hljs-template-string, .hljs-subst { color: #2f6f9f; }
+			.hljs-number, .hljs-literal { color: var(--warn); }
+			.hljs-comment { color: #8a8a8a; font-style: italic; }
+			.hljs-variable, .hljs-params, .hljs-property { color: #1a1a1a; }
+			.reveal .hljs.has-highlights tr:not(.highlight-line) { opacity: 0.3; }
+
+			/* layout */
+			.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0; align-items: stretch; }
+			.cols.three { grid-template-columns: repeat(3, 1fr); }
+			.cols.wide-left { grid-template-columns: 1.3fr 1fr; gap: 28px; }
+			/* "cards" become columns separated by hairlines, like Sol */
+			.card {
+				background: none; border: 0; border-left: 1px solid var(--hair);
+				padding: 4px 26px 14px; font-size: 0.66em;
+			}
+			.card h3 { margin: 0 0 0.5em; font-size: 1.25em; }
+			.card.warn h3 { color: var(--warn); }
+			.card.danger h3 { color: var(--danger); }
+			.card.info h3 { color: var(--info); }
+			.card ul, .card ol { margin: 0; }
+			.card p { margin: 0.3em 0; }
+			.cols > .card:nth-child(2n+1) { border-left: 0; padding-left: 0; }
+			.cols.three > .card { border-left: 1px solid var(--hair); padding-left: 26px; }
+			.cols.three > .card:first-child { border-left: 0; padding-left: 0; }
+			.cols:not(.three) > .card { border-top: 1px solid var(--hair); padding-top: 16px; }
+
+			.tag {
+				display: inline-block; font-size: 0.45em; letter-spacing: 3px; text-transform: uppercase;
+				border: 1px solid var(--hair); padding: 3px 12px; margin: 3px 4px 3px 0; color: var(--muted);
+			}
+			.big-quote { font-family: var(--head); font-size: 1.45em; line-height: 1.18; font-weight: 700; letter-spacing: -0.02em; }
+			.big-quote .muted { font-family: var(--body); font-weight: 400; letter-spacing: 0; }
+			.stat { font-family: var(--head); font-weight: 700; font-size: 4.6em; line-height: 1; letter-spacing: -0.04em; margin: 0; }
+
+			table.t { font-size: 0.6em; border-collapse: collapse; width: 100%; }
+			.reveal table.t th, .reveal table.t td { border-bottom: 1px solid var(--hair); padding: 12px 12px 12px 0; text-align: left; }
+			.reveal table.t th { color: var(--muted); font-weight: 600; font-size: 0.75em; letter-spacing: 3px; text-transform: uppercase; }
+
+			.layer {
+				display: flex; align-items: center; gap: 16px;
+				border-bottom: 1px solid var(--hair); padding: 11px 0; margin: 0; font-size: 0.6em;
+			}
+			.layer:first-child { border-top: 1px solid var(--hair); }
+			.layer .n { font-family: var(--head); font-weight: 700; width: 2em; }
+			.layer .d { flex: 1; }
+			.layer .where { color: var(--muted); font-size: 0.75em; letter-spacing: 2px; text-transform: uppercase; }
+			.layers .layer { font-size: 0.5em; }
+
+			.viz { display: block; margin: 14px auto; max-width: 100%; }
+
+			/* section dividers: inverted white slides */
+			.reveal section.divider { text-align: left; border-left: 6px solid #000; padding-left: 48px !important; }
+			.reveal section.divider, .reveal section.divider h2, .reveal section.divider b { color: #000; }
+			.reveal section.divider .section-num {
+				font-family: var(--head); font-weight: 700; font-size: 7em; line-height: 0.9;
+				letter-spacing: -0.05em; color: #000; margin: 0 0 0.15em;
+			}
+			.reveal section.divider .kicker { color: #000; }
+			.reveal section.divider h2 { font-size: 2em; margin: 0 0 0.4em; }
+			.reveal section.divider p { color: #6e6e6e; }
+
+			/* title slide */
+			.cover-bg {
+				position: fixed; inset: 0; z-index: 0; pointer-events: none;
+				opacity: 0; transition: opacity 0.6s ease;
+			}
+			.reveal-viewport.is-cover .cover-bg { opacity: 1; }
+			.reveal { z-index: 1; }
+			.reveal section.cover .cover-text { margin-left: 44%; position: relative; }
+			.reveal section.cover h1 { font-size: 2.9em; line-height: 1; margin: 0 0 0.35em; }
+			.cover-foot {
+				position: absolute; right: 0; bottom: -10px; font-size: 0.38em;
+				letter-spacing: 4px; text-transform: uppercase; color: var(--muted);
+			}
+
+			/* chrome */
+			.deck-footer {
+				position: fixed; left: 36px; bottom: 22px; z-index: 30; pointer-events: none;
+				font-family: var(--body); font-size: 10px; font-weight: 600; letter-spacing: 3px;
+				text-transform: uppercase; color: rgba(0, 0, 0, 0.45);
+			}
+			.reveal .slide-number {
+				background: none; font-family: var(--body); font-size: 10px; font-weight: 600;
+				letter-spacing: 3px; color: rgba(0, 0, 0, 0.45); right: 92px; bottom: 18px;
+			}
+			.reveal .progress { color: #000; height: 2px; }
+			.reveal .controls { color: #000; }
+			.reveal.has-light-background .slide-number,
+			.reveal-viewport:has(.reveal.has-light-background) .deck-footer { color: rgba(0, 0, 0, 0.45); }
+			.reveal.has-light-background .controls, .reveal.has-light-background .progress { color: #000; }
+		</style>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+	</head>
+	<body>
+		<canvas id="cover-bg" class="cover-bg" data-scene="orbit" data-fullscreen></canvas>
+		<div class="deck-footer">Mobile Dev Talk #24 · Scrape Data from Mobile Apps</div>
+		<div class="reveal">
+			<div class="slides">
+				<!-- ============================ OPENING ============================ -->
+				<section class="cover" data-state="is-cover">
+					<div class="cover-text">
+						<div class="kicker">Mobile Dev Talk #24 · MDG Community</div>
+						<h1>Scrape Data from Mobile Apps</h1>
+						<p class="small muted" style="max-width: 15em">…dan cara menjaga app kita sendiri dari hal yang sama.</p>
+						<p class="small" style="margin-top: 1.4em"><b>Nanda Apriliawan</b><br /><span class="muted">React Native Developer</span></p>
+					</div>
+					<div class="cover-foot">7 November 2026 · Online</div>
+					<aside class="notes">
+						Salam pembuka. Terima kasih ke MDG dan moderator (Mas Iqbal Fauzi). Hari ini kita main dua peran:
+						pertama jadi "scraper", lalu balik kursi jadi pemilik app yang di-scrape.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Tentang saya</div>
+					<h2>Halo, saya Nanda</h2>
+					<ul>
+						<li>React Native Developer</li>
+						<li>Pernah nulis soal security &amp; API di Medium <span class="muted">(@naandalist)</span></li>
+					</ul>
+					<p class="small muted">
+						<!-- TODO: tambahkan foto / perusahaan / sosial media jika perlu -->
+						medium.com/@naandalist · mobiledev.id/@nanda
+					</p>
+					<aside class="notes">Perkenalan singkat, maksimal 1 menit.</aside>
+				</section>
+
+				<section>
+					<div class="kicker warn">Sebelum mulai</div>
+					<h2>Disclaimer</h2>
+					<ul>
+						<li>Materi ini untuk <b>belajar</b>, <b>debugging app sendiri</b>, dan <b>memperkuat keamanan</b>.</li>
+						<li>Praktikkan ke app milik sendiri, atau yang kamu <b>punya izin</b>.</li>
+						<li>Cek <b>Terms of Service</b> &amp; aturan hukum (mis. UU ITE, UU PDP) sebelum menyentuh app orang lain.</li>
+						<li>Data pribadi orang lain = <span class="danger">jangan disentuh.</span></li>
+					</ul>
+					<aside class="notes">
+						Penting ditekankan di awal supaya diskusi tetap sehat. Saya bukan lawyer, ini pengingat, bukan nasihat hukum.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Agenda</div>
+					<h2>Perjalanan kita hari ini</h2>
+					<div class="cols">
+						<div>
+							<p class="fragment"><span class="accent">01</span> Scraping itu apa? Praktik di web</p>
+							<p class="fragment"><span class="accent">02</span> Kenapa mobile app beda</p>
+							<p class="fragment"><span class="accent">03</span> Cara-cara umum scraping mobile app</p>
+						</div>
+						<div>
+							<p class="fragment"><span class="warn">04</span> POV pemilik app: apa ruginya?</p>
+							<p class="fragment"><span class="warn">05</span> Hardening app dengan cara "unik"</p>
+							<p class="fragment"><span class="info">06</span> Open session: bawa kasusmu</p>
+						</div>
+					</div>
+					<aside class="notes">
+						Hijau = sisi scraper, oranye = sisi pemilik app. Warna ini konsisten di seluruh slide.
+					</aside>
+				</section>
+
+				<!-- ============================ 01. SCRAPING ITU APA ============================ -->
+				<section class="divider">
+					<p class="section-num">01</p>
+					<div class="kicker">Bagian 01</div>
+					<h2>Scraping itu apa?</h2>
+					<p class="muted small">…dan seperti apa di web</p>
+				</section>
+
+				<section>
+					<div class="kicker">Definisi</div>
+					<p class="big-quote">
+						Scraping = mengambil data dari sebuah sistem <span class="accent">lewat jalur yang dipakai manusia/app</span>,
+						bukan lewat jalur resmi untuk developer.
+					</p>
+					<div class="cols three" style="margin-top: 1em">
+						<div class="card"><h3>API resmi</h3><p>Ada docs, API key, kontrak, rate limit jelas.</p></div>
+						<div class="card"><h3>Crawling</h3><p>Menjelajah link → menemukan halaman (mis. mesin pencari).</p></div>
+						<div class="card"><h3>Scraping</h3><p>Mengekstrak <b>isi</b> halaman/response jadi data terstruktur.</p></div>
+					</div>
+					<aside class="notes">
+						Crawling itu "menemukan", scraping itu "mengambil isinya". Keduanya sering dipakai bareng.
+						Use case legit: price monitoring, riset, migrasi data, integrasi dengan sistem lama tanpa API.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Scraping di web</div>
+					<h2>Tiga level scraping web</h2>
+					<div class="cols three">
+						<div class="card">
+							<h3>1. Parse HTML</h3>
+							<p>Fetch halaman → ambil elemen pakai selector.</p>
+							<p class="muted">cheerio, BeautifulSoup</p>
+						</div>
+						<div class="card">
+							<h3>2. Headless browser</h3>
+							<p>Untuk halaman yang dirender JavaScript (SPA).</p>
+							<p class="muted">Playwright, Puppeteer</p>
+						</div>
+						<div class="card">
+							<h3>3. "Hidden API"</h3>
+							<p>Buka DevTools → tab Network → panggil langsung JSON-nya.</p>
+							<p class="muted">fetch, curl</p>
+						</div>
+					</div>
+					<p class="small muted fragment" style="margin-top: 1em">
+						Level 3 adalah jembatan ke mobile: <b class="accent">jangan scrape tampilannya, ambil datanya.</b>
+					</p>
+					<aside class="notes">
+						Level 1 rapuh: class CSS berubah, scraper rusak. Level 3 paling stabil karena struktur JSON jarang berubah.
+						Ini mindset yang sama yang kita bawa ke mobile.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Scraping di web</div>
+					<h2>Contoh: parse HTML</h2>
+					<pre><code class="language-js" data-trim data-line-numbers="4-8">
+import * as cheerio from 'cheerio';
+
+const html = await (await fetch('https://toko-contoh.id/produk')).text();
+const $ = cheerio.load(html);
+
+const products = $('.product-card').map((_, el) => ({
+  name:  $(el).find('.title').text().trim(),
+  price: $(el).find('.price').text().replace(/\D/g, ''),
+})).get();
+
+console.log(products);
+					</code></pre>
+					<p class="small muted">Gampang… sampai desainer mengganti <code>.product-card</code> </p>
+					<aside class="notes">Domain contoh fiktif. Poinnya: web itu transparan: view source & DevTools tersedia untuk semua orang.</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Scraping di web</div>
+					<h2>Kenapa web relatif mudah?</h2>
+					<ul>
+						<li class="fragment"><b>DevTools</b> ada di setiap browser, Network tab langsung kelihatan</li>
+						<li class="fragment">Kode frontend (JS) <b>terkirim ke client</b> dan bisa dibaca</li>
+						<li class="fragment">Browser <b>percaya CA sistem</b>, tidak ada certificate pinning</li>
+						<li class="fragment">Request bisa di-<i>copy as cURL</i> dalam satu klik</li>
+					</ul>
+					<p class="fragment small warn">Di mobile, hampir semua kemudahan ini hilang.</p>
+				</section>
+
+				<!-- ============================ 02. MOBILE BEDA ============================ -->
+				<section class="divider">
+					<p class="section-num">02</p>
+					<div class="kicker">Bagian 02</div>
+					<h2>Kenapa mobile app beda?</h2>
+				</section>
+
+				<section>
+					<div class="kicker">Insight utama</div>
+					<p class="big-quote">
+						Setiap app di HP kamu sedang <span class="accent">ngobrol dengan server.</span><br />
+						<span class="muted" style="font-size: 0.7em">Di balik layar ada API yang mengirim data mentah, app cuma menggambarnya.</span>
+					</p>
+					<canvas class="viz" data-scene="api" data-w="1100" data-h="300"></canvas>
+					<aside class="notes">
+						Jadi target scraping di mobile hampir selalu: API-nya, bukan layar-nya.
+						API mobile biasanya tidak didokumentasikan untuk publik, tapi tetap API.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Keterbatasan</div>
+					<h2>Tantangan di mobile</h2>
+					<div class="cols">
+						<div class="card">
+							<h3>Tidak ada DevTools</h3>
+							<p>Traffic tidak bisa dilihat langsung, butuh proxy di tengah.</p>
+						</div>
+						<div class="card">
+							<h3>TLS &amp; trust store</h3>
+							<p>Sejak Android 7, app <b>tidak percaya user CA</b> secara default.</p>
+						</div>
+						<div class="card">
+							<h3>Certificate pinning</h3>
+							<p>App hanya mau bicara dengan sertifikat tertentu, proxy ditolak.</p>
+						</div>
+						<div class="card">
+							<h3>Kode terkompilasi</h3>
+							<p>APK/IPA, R8/ProGuard, Hermes bytecode: tidak semudah view source.</p>
+						</div>
+						<div class="card">
+							<h3>Request signing</h3>
+							<p>Header dinamis (signature, timestamp, device id) yang harus dihitung.</p>
+						</div>
+						<div class="card">
+							<h3>Attestation &amp; deteksi</h3>
+							<p>Play Integrity, App Attest, deteksi root/jailbreak/emulator.</p>
+						</div>
+					</div>
+					<aside class="notes">
+						Tambahan: kadang protokolnya bukan REST: gRPC/protobuf, WebSocket, GraphQL persisted queries.
+						Protobuf tanpa schema = byte yang perlu ditebak.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Plot twist</div>
+					<h2>Tapi… API mobile sering lebih "ramah"</h2>
+					<ul>
+						<li class="fragment">Response-nya <b>JSON bersih</b>, tidak perlu parse HTML</li>
+						<li class="fragment">Endpoint <b>versi lama</b> sering masih hidup demi backward compatibility</li>
+						<li class="fragment">Asumsi "ini kan cuma dipanggil app kita" → <b>validasi &amp; rate limit lebih longgar</b></li>
+						<li class="fragment">API key / secret kadang <b>tertanam di binary</b></li>
+					</ul>
+					<p class="fragment small warn">Sebagai pemilik app: asumsi "hanya app kita yang memanggil" itu yang paling berbahaya.</p>
+					<aside class="notes">
+						Ini pesan penting untuk audience mobile dev: kita sering merasa aman karena "nggak ada yang tahu endpoint-nya". Security by obscurity.
+					</aside>
+				</section>
+
+				<!-- ============================ 03. CARA UMUM ============================ -->
+				<section class="divider">
+					<p class="section-num">03</p>
+					<div class="kicker">Bagian 03</div>
+					<h2>Cara-cara umum scraping mobile app</h2>
+				</section>
+
+				<section>
+					<div class="kicker">Peta teknik</div>
+					<h2>Lima pendekatan, dari mudah ke sulit</h2>
+					<table class="t">
+						<thead><tr><th>#</th><th>Pendekatan</th><th>Inti</th><th>Contoh tools</th></tr></thead>
+						<tbody>
+							<tr><td class="accent">1</td><td><b>Cek versi web dulu</b></td><td>Sering pakai API yang sama</td><td>DevTools</td></tr>
+							<tr><td class="accent">2</td><td><b>Intercept traffic</b></td><td>Proxy di antara app &amp; server</td><td>mitmproxy, Charles, Proxyman, HTTP Toolkit</td></tr>
+							<tr><td class="accent">3</td><td><b>Static analysis</b></td><td>Bongkar APK, cari URL/key/logic</td><td>jadx, apktool</td></tr>
+							<tr><td class="accent">4</td><td><b>Dynamic instrumentation</b></td><td>Hook fungsi saat app jalan</td><td>Frida, objection</td></tr>
+							<tr><td class="accent">5</td><td><b>UI automation</b></td><td>"Pencet" app seperti manusia</td><td>Appium, Maestro</td></tr>
+						</tbody>
+					</table>
+					<aside class="notes">
+						Selalu mulai dari yang termurah. Banyak kasus selesai di nomor 1 atau 2.
+						Nomor 5 itu jalan terakhir: lambat, tapi hampir selalu "berhasil" karena memakai app asli.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Teknik #2 · Intercept traffic</div>
+					<h2>Menonton obrolan app dan server</h2>
+					<canvas class="viz" data-scene="proxy" data-w="1100" data-h="300"></canvas>
+					<ol class="small">
+						<li>Jalankan proxy di laptop, arahkan Wi-Fi HP/emulator ke sana</li>
+						<li>Pasang CA sertifikat proxy di device (emulator / device test)</li>
+						<li>Buka layar yang datanya kamu mau → lihat request yang muncul</li>
+					</ol>
+					<p class="xs muted">Untuk app sendiri: build debug dengan <code>network_security_config</code> yang trust user CA, tanpa perlu bypass apa pun.</p>
+					<aside class="notes">
+						Ini disebut Man-in-the-Middle, tapi kita sendiri yang memasang "middle"-nya.
+						Kalau app pakai pinning, langkah ini gagal → harus ke teknik 3/4. Detail bypass tidak dibahas mendalam di sini.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Teknik #2 · Membaca request</div>
+					<h2>Anatomi sebuah request</h2>
+					<pre><code class="language-http" data-trim data-line-numbers="1|2-7|9">
+GET /v2/products?category=12&amp;page=1&amp;limit=20 HTTP/2
+Host: api.example-app.com
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+X-App-Version: 5.12.0
+X-Device-Id: 8f3c2a91-...
+X-Signature: 9b1e0c...            &lt;-- dinamis? dihitung dari apa?
+User-Agent: okhttp/4.12.0
+
+{ "data": [ ... ], "meta": { "next_cursor": "eyJpZCI6..." } }
+					</code></pre>
+					<ul class="small">
+						<li><b>Endpoint</b> di balik layar mana? Cocokkan dengan aksi di UI.</li>
+						<li><b>Header</b> mana yang wajib? Hapus satu per satu sampai request gagal.</li>
+						<li><b>Token</b> dari mana &amp; kapan expired? Cari request login / refresh.</li>
+					</ul>
+					<aside class="notes">
+						Teknik "hapus header satu per satu" itu cara paling cepat menemukan header minimum.
+						Header seperti X-Signature yang berubah tiap request = tanda ada request signing → butuh static/dynamic analysis.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Teknik #2 · Replay</div>
+					<h2>Rebuild request di luar app</h2>
+					<pre><code class="language-js" data-trim data-line-numbers>
+const headers = {
+  Authorization: `Bearer ${TOKEN}`,
+  'X-App-Version': '5.12.0',
+  'User-Agent': 'okhttp/4.12.0',
+};
+
+const res = await fetch(
+  'https://api.example-app.com/v2/products?category=12&amp;page=1',
+  { headers },
+);
+console.log(await res.json());
+					</code></pre>
+					<p class="small">Kalau ini berhasil… <span class="warn">server tidak bisa membedakan script ini dengan app asli.</span></p>
+					<aside class="notes">Kalimat terakhir ini adalah inti masalah yang nanti kita bahas di POV pemilik app.</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Teknik #2 · Data nyata itu berantakan</div>
+					<h2>Pagination &amp; response yang "messy"</h2>
+					<div class="cols wide-left">
+						<pre><code class="language-js" data-trim>
+let cursor = null;
+const all = [];
+
+do {
+  const url = new URL(BASE + '/v2/products');
+  if (cursor) url.searchParams.set('cursor', cursor);
+
+  const { data, meta } =
+    await (await fetch(url, { headers })).json();
+
+  all.push(...data);
+  cursor = meta?.next_cursor;
+  await sleep(1000); // sopan ke server
+} while (cursor);
+						</code></pre>
+						<div class="card">
+							<h3>Yang sering bikin pusing</h3>
+							<ul>
+								<li>offset vs cursor vs page token</li>
+								<li>Data duplikat saat list berubah</li>
+								<li>Field <code>null</code> / beda tipe antar item</li>
+								<li>Nested response, ID dirujuk ke endpoint lain</li>
+								<li>Rate limit → HTTP 429</li>
+								<li>Token expired di tengah jalan</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<div class="kicker">Teknik #3 · Static analysis</div>
+					<h2>Membongkar APK</h2>
+					<div class="cols">
+						<div>
+							<ul class="small">
+								<li>APK itu cuma file ZIP</li>
+								<li><code>jadx</code> → Java/Kotlin yang bisa dibaca</li>
+								<li>Cari: <code>https://</code>, <code>api_key</code>, <code>secret</code>, <code>HmacSHA256</code></li>
+								<li>Lihat bagaimana header signature dihitung</li>
+							</ul>
+						</div>
+						<div class="card warn">
+							<h3>Catatan untuk dev React Native</h3>
+							<p><code>assets/index.android.bundle</code> berisi <b>seluruh JS app kita</b>.</p>
+							<p>Tanpa Hermes → plain JS (minified).<br />Dengan Hermes → bytecode, tapi tetap bisa di-decompile.</p>
+							<p class="warn">String seperti <code>API_KEY</code> tetap terbaca.</p>
+						</div>
+					</div>
+					<aside class="notes">
+						Coba demo singkat: unzip APK sendiri, grep "https://" di bundle. Biasanya audience kaget.
+						.env yang di-inject saat build (react-native-config, dll) = ikut masuk ke binary.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Teknik #4 &amp; #5</div>
+					<h2>Kalau static tidak cukup</h2>
+					<div class="cols">
+						<div class="card">
+							<h3>Dynamic instrumentation</h3>
+							<p>Frida menyuntikkan script ke proses app yang sedang jalan.</p>
+							<ul>
+								<li>Intip argumen &amp; return value fungsi</li>
+								<li>Lihat data sebelum dienkripsi / ditandatangani</li>
+								<li>Mematikan pengecekan di sisi client</li>
+							</ul>
+							<p class="muted">Butuh device root/jailbreak atau app yang di-repackage.</p>
+						</div>
+						<div class="card">
+							<h3>UI automation</h3>
+							<p>Appium/Maestro + baca view hierarchy / OCR.</p>
+							<ul>
+								<li>Tidak perlu tahu API sama sekali</li>
+								<li>Lolos signing &amp; pinning karena pakai app asli</li>
+								<li>Tapi lambat, rapuh, mahal di-scale</li>
+							</ul>
+						</div>
+					</div>
+					<aside class="notes">
+						Pesan untuk pemilik app: apa pun yang dicek hanya di client bisa dimatikan. Client = lingkungan yang dikontrol penyerang.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Realistis</div>
+					<h2>Kapan sulit, dan kapan tidak worth it?</h2>
+					<div class="cols">
+						<div class="card danger">
+							<h3>Mulai sulit kalau…</h3>
+							<ul>
+								<li>Pinning + deteksi root/Frida</li>
+								<li>Request signing yang berubah per versi app</li>
+								<li>Play Integrity / App Attest diverifikasi server</li>
+								<li>Protobuf tanpa schema</li>
+								<li>Rate limit per device + per akun</li>
+							</ul>
+						</div>
+						<div class="card">
+							<h3>Tidak worth it kalau…</h3>
+							<ul>
+								<li>Ada API resmi / partner program</li>
+								<li>Data bisa dibeli atau diminta baik-baik</li>
+								<li>Melanggar ToS / menyentuh data pribadi</li>
+								<li>Biaya maintenance &gt; nilai datanya</li>
+							</ul>
+						</div>
+					</div>
+					<aside class="notes">Transisi: "Oke, sekarang kita balik kursi. Bagaimana kalau kita yang jadi korbannya?"</aside>
+				</section>
+
+				<!-- ============================ 04. POV PEMILIK APP ============================ -->
+				<section class="divider">
+					<p class="section-num">04</p>
+					<div class="kicker">Bagian 04</div>
+					<h2>Balik kursi: POV pemilik app</h2>
+					<p class="muted small">"API saya di-hit dari luar app. Terus kenapa?"</p>
+				</section>
+
+				<section>
+					<div class="kicker warn">Kerugian</div>
+					<h2>Apa ruginya kalau API kita "dicuri"?</h2>
+					<div class="cols">
+						<div class="card warn">
+							<h3>Biaya</h3>
+							<ul>
+								<li>Tagihan server &amp; bandwidth naik</li>
+								<li>API pihak ketiga yang kita bayar per call (AI, maps, OCR) ikut dipakai orang</li>
+								<li>Abuse OTP SMS/WhatsApp = bakar saldo</li>
+							</ul>
+						</div>
+						<div class="card warn">
+							<h3>Bisnis</h3>
+							<ul>
+								<li>Katalog, harga, stok disedot kompetitor</li>
+								<li>Abuse promo / voucher / referral</li>
+								<li>Konten eksklusif bocor</li>
+							</ul>
+						</div>
+						<div class="card warn">
+							<h3>User asli</h3>
+							<ul>
+								<li>Server lambat karena traffic bot</li>
+								<li>Rate limit ikut kena user asli</li>
+							</ul>
+						</div>
+						<div class="card danger">
+							<h3>Data analitik kacau</h3>
+							<ul>
+								<li>Keputusan produk diambil dari data yang salah</li>
+								<li>Ini yang paling sering tidak disadari →</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<div class="kicker warn">"Tapi backend saya sudah secure…"</div>
+					<h2>Auth yang benar ≠ client yang sah</h2>
+					<ul>
+						<li class="fragment">Backend sudah cek token, authorization, validasi input </li>
+						<li class="fragment">Tapi token itu <b>milik akun yang sah</b>, scraper cukup login seperti user biasa</li>
+						<li class="fragment">Server tahu <b class="accent">SIAPA</b> usernya, tapi tidak tahu <b class="warn">DARI MANA</b> request-nya</li>
+					</ul>
+					<p class="fragment big-quote" style="font-size: 1.1em; margin-top: 1em">
+						Request yang "valid" secara auth tetap bisa <span class="warn">merugikan</span> kalau tidak datang dari app kita.
+					</p>
+					<aside class="notes">
+						Contoh: endpoint publik seperti list produk, search, banner: memang tidak butuh login. Tidak ada celah security, tapi tetap ada kerugian bisnis.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker warn">Studi kasus · ilustrasi</div>
+					<h2>Ketika dashboard "Tidak Sync"</h2>
+					<div class="cols wide-left">
+						<div>
+							<p class="stat">75%</p>
+							<p class="small muted" style="margin-top: 0.3em">request ke server <b>tidak punya jejak</b> di app</p>
+							<table class="t" style="margin-top: 0.8em">
+								<tbody>
+									<tr><td>Request <code>GET /products</code> di server</td><td><b>1.200.000</b></td></tr>
+									<tr><td>Event <code>product_list_viewed</code> di analytics</td><td><b>300.000</b></td></tr>
+								</tbody>
+							</table>
+						</div>
+						<div class="card danger">
+							<h3>Efek domino</h3>
+							<ul>
+								<li>Conversion rate terlihat anjlok</li>
+								<li>Hasil A/B test bias</li>
+								<li>"Produk populer" ternyata cuma sering di-scrape</li>
+								<li>Rekomendasi &amp; ranking ikut rusak</li>
+								<li>Capacity planning salah</li>
+							</ul>
+						</div>
+					</div>
+					<p class="xs muted">Angka di atas ilustrasi. Kebalikannya juga terjadi: bot yang menembak endpoint tracker → DAU palsu.</p>
+					<aside class="notes">
+						Tips praktis: rekonsiliasi rasio API call vs event analytics per endpoint. Rasio yang tiba-tiba melonjak = sinyal scraping.
+					</aside>
+				</section>
+
+				<!-- ============================ 05. HARDENING ============================ -->
+				<section class="divider">
+					<p class="section-num">05</p>
+					<div class="kicker">Bagian 05</div>
+					<h2>Hardening app kita</h2>
+					<p class="muted small">Tujuannya bukan 100% aman, tapi <b>menaikkan biaya</b> penyerang</p>
+				</section>
+
+				<section>
+					<div class="kicker">Defense in depth</div>
+					<h2>Berlapis, bukan satu tembok</h2>
+					<div class="cols wide-left" style="align-items: center">
+						<div class="layers">
+							<div class="layer"><span class="n">L1</span><span class="d"><b>HTTPS + certificate pinning</b></span><span class="where">network</span></div>
+							<div class="layer"><span class="n">L2</span><span class="d"><b>Obfuscation</b>: R8/ProGuard, Hermes, secret tidak disimpan plain</span><span class="where">client</span></div>
+							<div class="layer"><span class="n">L3</span><span class="d"><b>Request signing berbasis waktu</b> (HMAC) <span class="accent">← fokus kita</span></span><span class="where">client + server</span></div>
+							<div class="layer"><span class="n">L4</span><span class="d"><b>App attestation</b>: Play Integrity / App Attest</span><span class="where">platform</span></div>
+							<div class="layer"><span class="n">L5</span><span class="d"><b>Deteksi lingkungan</b>: root, jailbreak, emulator, Frida</span><span class="where">client</span></div>
+							<div class="layer"><span class="n">L6</span><span class="d"><b>Rate limit, anomaly detection, force update</b></span><span class="where">server</span></div>
+						</div>
+						<canvas class="viz" data-scene="layers" data-w="440" data-h="450"></canvas>
+					</div>
+					<aside class="notes">
+						Setiap lapisan bisa ditembus sendiri-sendiri. Tapi menembus semuanya sekaligus = mahal. Itu yang kita mau.
+						L6 paling penting karena satu-satunya yang benar-benar di bawah kendali kita.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Masalahnya</div>
+					<h2>Static API key = <span class="danger">golden ticket abadi</span></h2>
+					<canvas class="viz" data-scene="staticKey" data-w="1100" data-h="280"></canvas>
+					<ul class="small">
+						<li>"Kan sudah HTTPS?" Belum cukup: HTTPS bisa dibuka di device yang dipasangi <b>rogue root CA</b> (persis teknik #2 tadi)</li>
+						<li>Key statis tidak pernah expired → sekali bocor, bocor selamanya</li>
+						<li>Butuh solusi yang <b>ringan</b>: tanpa database, cocok untuk proxy/microservice</li>
+					</ul>
+					<aside class="notes">
+						Dari artikel saya di Medium: "Hardening Your Static API Keys with Time-Based Signatures".
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Ide</div>
+					<h2>Time-based signature dengan HMAC</h2>
+					<p class="big-quote" style="font-size: 1.1em">
+						Jangan kirim secret-nya. Kirim <span class="accent">bukti</span> bahwa kamu tahu secret-nya,
+						dan bukti itu <span class="accent">kedaluwarsa dalam hitungan detik.</span>
+					</p>
+					<pre><code class="language-plaintext" data-trim>
+signature = HMAC_SHA256( secret,  epochMs + requestUrl + bodyString )
+					</code></pre>
+					<div class="cols three">
+						<div class="card"><h3>Shared secret</h3><p>Ada di client &amp; server, <b>tidak pernah dikirim</b> lewat jaringan.</p></div>
+						<div class="card"><h3>⏱️ Epoch UTC</h3><p>Sama di seluruh dunia. Membuat signature basi dengan cepat.</p></div>
+						<div class="card"><h3>URL + body</h3><p>Signature terikat ke request ini. Ubah 1 karakter → invalid.</p></div>
+					</div>
+					<aside class="notes">
+						HMAC memberi dua hal: authenticity (dari pihak yang tahu secret) dan integrity (tidak diubah di jalan).
+						Epoch UTC: jumlah milidetik sejak 1 Jan 1970, angkanya identik di Jakarta dan New York pada saat yang sama.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Alur</div>
+					<h2>Bagaimana client &amp; server bekerja</h2>
+					<div class="cols">
+						<div class="card">
+							<h3>Client</h3>
+							<ol>
+								<li>Ambil <code>epoch = Date.now()</code></li>
+								<li>Susun <code>epoch + url + body</code></li>
+								<li>Hitung HMAC-SHA256 dengan secret</li>
+								<li>Kirim header <code>X-Auth-Epoch</code> &amp; <code>X-Auth-Signature</code></li>
+							</ol>
+						</div>
+						<div class="card warn">
+							<h3>Server</h3>
+							<ol>
+								<li>Header lengkap? Kalau tidak → 401</li>
+								<li><code>|now − epoch| &gt; 60 dtk</code>? → 401 (basi)</li>
+								<li>Susun ulang string dengan urutan <b>sama persis</b></li>
+								<li>Hitung signature sendiri → bandingkan</li>
+								<li>Cocok → teruskan ke API tujuan</li>
+							</ol>
+						</div>
+					</div>
+					<aside class="notes">
+						Toleransi 60 detik = clock skew antar device. Jam HP user tidak pernah sinkron sempurna.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Simulasi</div>
+					<h2>Disadap lalu di-replay? <span class="accent">Cepat basi.</span></h2>
+					<canvas class="viz" data-scene="hmac" data-w="1100" data-h="345"></canvas>
+					<p class="small muted">Bandingkan dengan static key tadi: copy yang sama hanya berguna beberapa detik, dan request yang diubah langsung ditolak.</p>
+					<aside class="notes">
+						Simulasi dipercepat: 1 detik di layar = 12 detik di server.
+						Replay pertama masih lolos karena masih di dalam jendela 60 detik (ini keterbatasan yang jujur, solusinya nonce).
+						Tamper ditolak karena body/URL ikut di-sign. Setelah 60 detik semua replay ditolak.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Implementasi · client (React Native)</div>
+					<h2>Menandatangani request</h2>
+					<pre><code class="language-ts" data-trim data-line-numbers="1-2|5-10|12-18">
+import { createHmac } from 'react-native-quick-crypto';
+const SECRET = getSecretFromNative(); // jangan hardcode string polos di JS
+
+export async function signedFetch(url: string, body?: object) {
+  const epoch = Date.now().toString();
+  const bodyStr = body ? JSON.stringify(body) : '';
+
+  const signature = createHmac('sha256', SECRET)
+    .update(`${epoch}${url}${bodyStr}`)
+    .digest('hex');
+
+  return fetch(url, {
+    method: body ? 'POST' : 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Auth-Epoch': epoch,
+      'X-Auth-Signature': signature,
+    },
+    body: body ? bodyStr : undefined,
+  });
+}
+					</code></pre>
+					<aside class="notes">
+						Di artikel saya contohnya pakai sign() HS256 dari @tsndr/cloudflare-worker-jwt. Di sini pakai createHmac langsung supaya lebih eksplisit, prinsipnya sama.
+						Penting: body yang di-sign harus string yang SAMA PERSIS dengan yang dikirim.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Implementasi · server (Hono middleware)</div>
+					<h2>Memverifikasi signature</h2>
+					<pre><code class="language-ts" data-trim data-line-numbers="4-7|9-13|15-17">
+const SKEW_MS = 60_000;
+
+app.use('/api/protected/*', async (c, next) => {
+  const epoch = Number(c.req.header('X-Auth-Epoch'));
+  const sig = c.req.header('X-Auth-Signature') ?? '';
+  if (!epoch || Math.abs(Date.now() - epoch) > SKEW_MS)
+    return c.json({ error: 'Request expired' }, 401);
+
+  const body = await c.req.raw.clone().text();
+  const expected = createHmac('sha256', SECRET)
+    .update(`${epoch}${c.req.url}${body}`)
+    .digest('hex');
+
+  if (sig.length !== expected.length ||
+      !timingSafeEqual(Buffer.from(sig), Buffer.from(expected)))
+    return c.json({ error: 'Invalid signature' }, 401);
+
+  await next(); // lolos → proxy ke API tujuan
+});
+					</code></pre>
+					<aside class="notes">
+						timingSafeEqual: perbandingan constant-time, mencegah timing attack (versi artikel pakai ===, ini upgrade kecil).
+						Gotcha: di belakang load balancer, c.req.url bisa beda host/protocol dengan URL yang di-sign client. Lebih aman sign path + query saja.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Hasil</div>
+					<h2>Apa yang kita dapat, dan apa yang tidak</h2>
+					<div class="cols">
+						<div class="card">
+							<h3>Didapat</h3>
+							<ul>
+								<li>Request yang disadap <b>basi dalam ±60 detik</b></li>
+								<li>Request tidak bisa diubah (URL/body terikat)</li>
+								<li>Secret tidak pernah lewat jaringan</li>
+								<li><b>Stateless</b>: tanpa database, cocok untuk proxy</li>
+								<li>Copy-as-cURL dari proxy <b>tidak lagi cukup</b></li>
+							</ul>
+						</div>
+						<div class="card danger">
+							<h3>Keterbatasan</h3>
+							<ul>
+								<li>HTTPS tetap wajib, ini lapisan tambahan</li>
+								<li>Secret tetap ada di app → bisa diekstrak oleh reverse engineer yang niat</li>
+								<li>Replay masih mungkin di dalam jendela 60 detik</li>
+								<li>Bukan pengganti user auth (OAuth/PKCE)</li>
+							</ul>
+						</div>
+					</div>
+					<aside class="notes">
+						Jujur soal keterbatasan. Tujuannya menaikkan biaya: scraper sekarang harus bongkar app (teknik #3/#4), bukan cuma copy request.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Inspirasi · Google Maps API key</div>
+					<h2>Hanya app terdaftar yang boleh akses?</h2>
+					<p class="small muted" style="margin: -0.6em 0 0">Key dibatasi ke <b>package name + SHA-1 sertifikat signing</b> (iOS: bundle ID). App lain ditolak.</p>
+					<canvas class="viz" data-scene="fingerprint" data-w="1100" data-h="355"></canvas>
+					<aside class="notes">
+						Ini ide yang bagus dan banyak dipakai: API key Google (Maps, dll) bisa di-restrict ke Android app tertentu.
+						Tapi lihat yang terjadi di baris ketiga: script yang bukan app sama sekali ikut lolos.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker warn">Plot twist</div>
+					<h2>Kenapa script tadi bisa lolos?</h2>
+					<ul>
+						<li class="fragment">App mengirim header <code>X-Android-Package</code> &amp; <code>X-Android-Cert</code> <span class="muted">(iOS: <code>X-Ios-Bundle-Identifier</code>)</span></li>
+						<li class="fragment">Nilainya <b>bukan rahasia</b>: package ada di manifest, SHA-1 terbaca lewat <code>apksigner verify --print-certs</code></li>
+						<li class="fragment">Server hanya <b>mencocokkan string</b>, jadi siapa pun yang menyalin header ikut lolos</li>
+					</ul>
+					<p class="fragment big-quote" style="font-size: 1.25em; margin-top: 1em">
+						Menyebut fingerprint <span class="warn">≠</span> membuktikan fingerprint.
+					</p>
+					<aside class="notes">
+						Restriksi ini tetap berguna: mencegah key dipakai iseng di app/website lain dan membatasi kuota.
+						Tapi bukan proteksi dari scraper yang niat. Yang kita butuhkan: bukti yang tidak bisa disalin, yaitu tanda tangan dari platform.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Versi yang kuat</div>
+					<h2>App attestation: bukti dari Google &amp; Apple</h2>
+					<canvas class="viz" data-scene="attest" data-w="1100" data-h="335"></canvas>
+					<p class="small muted">Play Integrity (Android) · App Attest (iOS) · atau <b>Firebase App Check</b> yang membungkus keduanya.</p>
+					<aside class="notes">
+						Bedanya: token dibuat dan ditandatangani oleh Google Play / Apple di device asli, berisi package, digest sertifikat, dan status device.
+						Script di laptop tidak bisa mendapatkan token itu. Token lama juga tidak berguna karena terikat ke requestHash dan timestamp.
+						Ini versi "hanya app terdaftar" yang benar-benar diverifikasi.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Implementasi · Play Integrity + time-based signature</div>
+					<h2>Ikat token ke request, verifikasi di server</h2>
+					<pre><code class="language-ts" data-trim data-line-numbers="1-3|5-10|12-17">
+// App (pseudo-code): token diikat ke request ini
+const requestHash = sha256(`${epoch}${url}${body}`);
+const token = await integrity.requestToken({ requestHash });
+
+// Server: decode lewat Google, lalu cek isinya
+const { tokenPayloadExternal: v } =
+  await playintegrity.v1.decodeIntegrityToken({
+    packageName: 'com.contoh.app',
+    requestBody: { integrityToken: token },
+  });
+
+const valid =
+  v.requestDetails.requestHash === sha256(`${epoch}${url}${body}`) &&
+  Date.now() - Number(v.requestDetails.timestampMillis) &lt; 60_000 &&
+  v.appIntegrity.appRecognitionVerdict === 'PLAY_RECOGNIZED' &&
+  v.appIntegrity.certificateSha256Digest.includes(OUR_CERT_SHA256) &&
+  v.deviceIntegrity.deviceRecognitionVerdict?.includes('MEETS_DEVICE_INTEGRITY');
+					</code></pre>
+					<aside class="notes">
+						requestHash diisi dengan hash dari epoch + url + body: sama persis dengan data yang kita sign di teknik HMAC tadi. Dua teknik ini saling melengkapi.
+						Di Android, requestToken itu StandardIntegrityTokenProvider.request(...setRequestHash(...)). Ini pseudo-code supaya ringkas.
+					</aside>
+				</section>
+
+				<section>
+					<div class="kicker">Catatan praktis</div>
+					<h2>Sebelum dipasang di production</h2>
+					<div class="cols">
+						<div class="card">
+							<h3>Biaya &amp; performa</h3>
+							<ul>
+								<li>Ada kuota &amp; latency: jangan attest <b>setiap</b> request</li>
+								<li>Attest saat login / awal sesi, lalu server terbitkan <b>token pendek</b> (mis. 10 menit)</li>
+								<li>Endpoint sensitif (checkout, OTP) boleh attest per request</li>
+							</ul>
+						</div>
+						<div class="card">
+							<h3>Kasus pinggiran</h3>
+							<ul>
+								<li>Device tanpa Google Play Services, emulator dev: siapkan <b>fallback</b> &amp; mode debug</li>
+								<li>App Attest hanya di device fisik iOS</li>
+								<li>Root + hooking canggih tetap mungkin: <b>rate limit &amp; monitoring</b> tetap wajib</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<div class="kicker">Level up</div>
+					<h2>Membuatnya lebih sulit lagi</h2>
+					<div class="cols">
+						<ul class="small">
+							<li><b>Nonce</b> + Redis TTL 60 dtk → setiap request hanya sekali pakai</li>
+							<li><b>Sembunyikan secret</b> di native layer (JNI/C++), dipecah &amp; dirakit saat runtime</li>
+							<li><b>Rotasi secret per versi app</b> + force update versi lama</li>
+							<li><b>Gabungkan dengan attestation</b>: secret/token hanya diberikan ke device yang lolos Play Integrity / App Attest</li>
+						</ul>
+						<ul class="small">
+							<li><b>Signature gagal = sinyal</b>, bukan cuma 401: log &amp; pantau polanya</li>
+							<li><b>Canary data</b>: sisipkan item jebakan di response → kalau muncul di tempat lain, kamu tahu bocornya dari mana</li>
+							<li><b>Rekonsiliasi analytics</b>: bandingkan API call vs event tracker per endpoint</li>
+							<li><b>Response kosong yang "sopan"</b> untuk bot, ketimbang error yang memberi petunjuk</li>
+						</ul>
+					</div>
+					<aside class="notes">
+						Teknik "unik" yang bisa dipilih sesuai kebutuhan. Canary data mirip "jalan jebakan" di peta; penerbit peta dulu pakai trik ini untuk mendeteksi penjiplakan.
+					</aside>
+				</section>
+
+				<!-- ============================ PENUTUP ============================ -->
+				<section>
+					<div class="kicker">Takeaways</div>
+					<h2>Yang perlu dibawa pulang</h2>
+					<ol>
+						<li class="fragment">App mobile hanya <b>menggambar data</b>, API-nya yang jadi target.</li>
+						<li class="fragment">Semua yang ada di client <b>bisa dibaca dan diubah</b>.</li>
+						<li class="fragment">Backend yang "secure" belum tentu <b>aman dari kerugian bisnis</b>; analytics pun bisa kacau.</li>
+						<li class="fragment">Security itu soal <b>menaikkan biaya</b> penyerang, berlapis-lapis.</li>
+						<li class="fragment">Time-based signature: <b>murah, stateless</b>, dan langsung mematikan replay sederhana.</li>
+						<li class="fragment">Mau API hanya untuk app terdaftar? Pakai <b>attestation</b>, bukan sekadar header fingerprint.</li>
+					</ol>
+				</section>
+
+				<section class="divider">
+					<p class="section-num">06</p>
+					<div class="kicker">Bagian 06</div>
+					<h2>Open session</h2>
+					<p>Bawa app atau request yang bikin kamu stuck,<br />kita bedah bareng.</p>
+					<p class="small muted">(app sendiri / yang kamu punya izin, ya)</p>
+					<aside class="notes">Arahkan pertanyaan lewat moderator. Kalau ada yang share layar proxy, bantu baca request-nya.</aside>
+				</section>
+
+				<section class="center">
+					<h1>Terima kasih!</h1>
+					<p class="small">
+						<b>Nanda Apriliawan</b><br />
+						<span class="muted">medium.com/@naandalist · mobiledev.id/@nanda</span>
+					</p>
+					<p class="xs muted" style="margin-top: 2em">
+						Bacaan: "Hardening Your Static API Keys with Time-Based Signatures" (Medium)
+					</p>
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="dist/plugin/notes.js"></script>
+		<script src="dist/plugin/markdown.js"></script>
+		<script src="dist/plugin/highlight.js"></script>
+		<script src="talk/diagrams.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+				width: 1280,
+				height: 720,
+				margin: 0.06,
+				slideNumber: 'c/t',
+				transition: 'slide',
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [RevealMarkdown, RevealHighlight, RevealNotes],
+			}).then(() => TalkDiagrams.init(Reveal));
+		</script>
+	</body>
+</html>
